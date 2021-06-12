@@ -10,6 +10,10 @@ edition = "2018"
 name = "sample_02_01"
 path = "src/sample_02_01.rs"
 
+[[bin]]
+name = "sample_02_02"
+path = "src/sample_02_02.rs"
+
 [dependencies]
 wgpu = "0.8.1"
 bytemuck = { version = "1.4", features = ["derive"] }
