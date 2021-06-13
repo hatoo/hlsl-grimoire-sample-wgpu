@@ -1,5 +1,4 @@
 use bytemuck::{Pod, Zeroable};
-use cgmath::SquareMatrix;
 use std::{borrow::Cow, mem::size_of};
 use wgpu::util::DeviceExt;
 use winit::{
@@ -12,30 +11,22 @@ use winit::{
 #[derive(Clone, Copy, Pod, Zeroable)]
 struct Vertex {
     _pos: [f32; 4],
-    _color: [f32; 4],
-    _uv: [f32; 2],
+    _tex_coords: [f32; 2],
 }
 
-fn vertex(x: f32, y: f32, rgb: [f32; 3], uv: [f32; 2]) -> Vertex {
+fn vertex(x: f32, y: f32, tex_coords: [f32; 2]) -> Vertex {
     Vertex {
         _pos: [x, y, 0.0, 1.0],
-        _color: [rgb[0], rgb[1], rgb[2], 1.0],
-        _uv: uv,
+        _tex_coords: tex_coords,
     }
 }
 
 fn create_vertices() -> Vec<Vertex> {
     vec![
-        vertex(-0.5, -0.5, [1.0, 0.0, 0.0], [0.0, 1.0]),
-        vertex(0.0, 0.5, [0.0, 1.0, 0.0], [0.5, 0.0]),
-        vertex(0.5, -0.5, [0.0, 0.0, 1.0], [1.0, 1.0]),
+        vertex(-0.5, -0.5, [0.0, 1.0]),
+        vertex(0.0, 0.5, [0.5, 0.0]),
+        vertex(0.5, -0.5, [1.0, 1.0]),
     ]
-}
-
-#[repr(C)]
-#[derive(Debug, Copy, Clone, Pod, Zeroable)]
-struct Matrix {
-    _matrix: [[f32; 4]; 4],
 }
 
 async fn run(event_loop: EventLoop<()>, window: Window) {
@@ -69,40 +60,6 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
         label: None,
         source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("../assets/03_02.wgsl"))),
         flags: wgpu::ShaderFlags::all(),
-    });
-
-    let matrix: Matrix = Matrix {
-        _matrix: cgmath::Matrix4::identity().into(),
-    };
-
-    let uniform_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("Uniform Buffer"),
-        contents: bytemuck::cast_slice(&[matrix]),
-        usage: wgpu::BufferUsage::UNIFORM,
-    });
-
-    let uniform_bind_group_layout =
-        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            entries: &[wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStage::VERTEX,
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Uniform,
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
-                },
-                count: None,
-            }],
-            label: Some("uniform_bind_group_layout"),
-        });
-
-    let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-        layout: &uniform_bind_group_layout,
-        entries: &[wgpu::BindGroupEntry {
-            binding: 0,
-            resource: uniform_buffer.as_entire_binding(),
-        }],
-        label: Some("uniform_bind_group"),
     });
 
     let diffuse_bytes = include_bytes!("../assets/rustacean-orig-noshadow.png");
@@ -157,7 +114,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
 
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: None,
-        bind_group_layouts: &[&uniform_bind_group_layout, &texture_bind_group_layout],
+        bind_group_layouts: &[&texture_bind_group_layout],
         push_constant_ranges: &[],
     });
 
@@ -174,14 +131,9 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
                 shader_location: 0,
             },
             wgpu::VertexAttribute {
-                format: wgpu::VertexFormat::Float32x4,
-                offset: size_of::<[f32; 4]>() as u64,
-                shader_location: 1,
-            },
-            wgpu::VertexAttribute {
                 format: wgpu::VertexFormat::Float32x2,
-                offset: size_of::<[f32; 4]>() as u64 * 2,
-                shader_location: 2,
+                offset: size_of::<[f32; 4]>() as wgpu::BufferAddress,
+                shader_location: 1,
             },
         ],
     }];
@@ -259,8 +211,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
                         depth_stencil_attachment: None,
                     });
                     rpass.set_pipeline(&render_pipeline);
-                    rpass.set_bind_group(0, &uniform_bind_group, &[]);
-                    rpass.set_bind_group(1, &diffuse_bind_group, &[]);
+                    rpass.set_bind_group(0, &diffuse_bind_group, &[]);
                     rpass.set_vertex_buffer(0, vertex_buf.slice(..));
                     rpass.draw(0..3, 0..1);
                 }
