@@ -122,7 +122,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
             },
             wgpu::VertexAttribute {
                 format: wgpu::VertexFormat::Float32x4,
-                offset: size_of::<[f32; 4]>() as u64,
+                offset: size_of::<[f32; 4]>() as wgpu::BufferAddress,
                 shader_location: 1,
             },
         ],
