@@ -84,6 +84,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
 
     let teapot = include_bytes!("../assets/teapot.glb");
 
+    // You can use _images to load a texture but it's more easier to reparse an image from buffers.
     let (document, buffers, _images) = gltf::import_slice(teapot).unwrap();
 
     let scene = loader::load_first_scene(
