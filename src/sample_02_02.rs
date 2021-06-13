@@ -136,8 +136,8 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
                 ..
             } => {
                 // Recreate the swap chain with the new size
-                sc_desc.width = size.width;
-                sc_desc.height = size.height;
+                sc_desc.width = size.width.max(1);
+                sc_desc.height = size.height.max(1);
                 swap_chain = device.create_swap_chain(&surface, &sc_desc);
             }
             Event::RedrawRequested(_) => {
