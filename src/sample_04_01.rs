@@ -129,15 +129,22 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
 
     let swapchain_format = adapter.get_swap_chain_preferred_format(&surface).unwrap();
 
-    let vertex_size = std::mem::size_of::<[f32; 3]>();
+    let vertex_size = std::mem::size_of::<loader::Vertex>();
     let vertex_buffers = [wgpu::VertexBufferLayout {
         array_stride: vertex_size as wgpu::BufferAddress,
         step_mode: wgpu::InputStepMode::Vertex,
-        attributes: &[wgpu::VertexAttribute {
-            format: wgpu::VertexFormat::Float32x3,
-            offset: 0,
-            shader_location: 0,
-        }],
+        attributes: &[
+            wgpu::VertexAttribute {
+                format: wgpu::VertexFormat::Float32x4,
+                offset: 0,
+                shader_location: 0,
+            },
+            wgpu::VertexAttribute {
+                format: wgpu::VertexFormat::Float32x4,
+                offset: size_of::<[f32; 4]>() as wgpu::BufferAddress,
+                shader_location: 1,
+            },
+        ],
     }];
 
     let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -257,6 +264,13 @@ mod loader {
     use cgmath::{Matrix4, Quaternion, SquareMatrix, Vector3};
     use wgpu::Device;
 
+    #[repr(C)]
+    #[derive(Clone, Copy, Pod, Zeroable)]
+    pub struct Vertex {
+        _pos: [f32; 4],
+        _color: [f32; 4],
+    }
+
     pub struct Primitive {
         pub transform: Matrix4<f32>,
         pub vertex_buffer: wgpu::Buffer,
@@ -286,8 +300,18 @@ mod loader {
 
             if let Some(mesh) = node.mesh() {
                 for primitive in mesh.primitives() {
+                    let material = primitive.material();
+                    let color = material.pbr_metallic_roughness().base_color_factor();
+
                     let reader = primitive.reader(|buffer| Some(&buffers[buffer.index()]));
-                    let vertices = reader.read_positions().unwrap().collect::<Vec<_>>();
+                    let vertices = reader
+                        .read_positions()
+                        .unwrap()
+                        .map(|p| Vertex {
+                            _pos: [p[0], p[1], p[2], 1.0],
+                            _color: color,
+                        })
+                        .collect::<Vec<_>>();
                     let indices = reader
                         .read_indices()
                         .unwrap()
