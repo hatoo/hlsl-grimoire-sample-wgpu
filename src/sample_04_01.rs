@@ -1,4 +1,5 @@
 use bytemuck::{Pod, Zeroable};
+use cgmath::{Matrix4, Quaternion};
 use std::{borrow::Cow, mem::size_of};
 use wgpu::util::DeviceExt;
 use winit::{
@@ -105,7 +106,14 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
     let global_matrix_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("global matrix"),
         contents: bytemuck::cast_slice(&[Matrix {
-            _matrix: cgmath::Matrix4::from_scale(0.01).into(),
+            _matrix: (Matrix4::from_translation(cgmath::vec3(0.0, 0.0, 0.5))
+                * Matrix4::from_scale(0.01)
+                * Matrix4::from(Quaternion::from(cgmath::Euler {
+                    x: cgmath::Rad(0.0),
+                    y: cgmath::Rad(0.0),
+                    z: cgmath::Rad(0.0),
+                })))
+            .into(),
         }]),
         usage: wgpu::BufferUsage::UNIFORM,
     });
@@ -220,7 +228,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
             targets: &[swapchain_format.into()],
         }),
         primitive: wgpu::PrimitiveState {
-            cull_mode: Some(wgpu::Face::Back),
+            cull_mode: Some(wgpu::Face::Front),
             ..Default::default()
         },
         depth_stencil: Some(wgpu::DepthStencilState {
