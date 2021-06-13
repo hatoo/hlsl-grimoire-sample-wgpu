@@ -65,19 +65,18 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
             label: Some("texture_bind_group_layout"),
         });
 
-    let diffuse_texture =
-        texture::Texture::from_bytes(&device, &queue, None, "rustacean-orig-noshadow.png").unwrap();
+    let dummy_texture = texture::Texture::dummy(&device, &queue, "dummy").unwrap();
 
-    let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+    let dummy_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
         layout: &texture_bind_group_layout,
         entries: &[
             wgpu::BindGroupEntry {
                 binding: 0,
-                resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
+                resource: wgpu::BindingResource::TextureView(&dummy_texture.view),
             },
             wgpu::BindGroupEntry {
                 binding: 1,
-                resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
+                resource: wgpu::BindingResource::Sampler(&dummy_texture.sampler),
             },
         ],
         label: Some("diffuse_bind_group"),
@@ -290,7 +289,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
                             &[(i as wgpu::BufferAddress * wgpu::BIND_BUFFER_ALIGNMENT)
                                 as wgpu::DynamicOffset],
                         );
-                        rpass.set_bind_group(2, &diffuse_bind_group, &[]);
+                        rpass.set_bind_group(2, &dummy_bind_group, &[]);
                         if let Some(id) = primitive.texture_id {
                             if let Some(bind_group) = &scene.textures[id] {
                                 rpass.set_bind_group(2, bind_group, &[]);
@@ -364,20 +363,15 @@ mod loader {
                     .pbr_metallic_roughness()
                     .base_color_texture()
                     .map(|info| {
-                        use image::ImageFormat::{Jpeg, Png};
                         let image = info.texture().source();
 
                         let image = match image.source() {
-                            gltf::image::Source::View { view, mime_type } => {
+                            gltf::image::Source::View { view, mime_type: _ } => {
                                 let parent_buffer_data = &buffers[view.buffer().index()].0;
                                 let begin = view.offset();
                                 let end = begin + view.length();
                                 let data = &parent_buffer_data[begin..end];
-                                match mime_type {
-                                    "image/jpeg" => image::load_from_memory_with_format(data, Jpeg),
-                                    "image/png" => image::load_from_memory_with_format(data, Png),
-                                    _ => todo!(),
-                                }
+                                image::load_from_memory(data)
                             }
                             _ => todo!(),
                         }
@@ -451,7 +445,7 @@ mod loader {
                             .map(|p| Vertex {
                                 _pos: [p[0], p[1], p[2], 1.0],
                                 _color: color,
-                                _tex_coord: [-1.0, -1.0],
+                                _tex_coord: [0.0, 0.0],
                             })
                             .collect::<Vec<_>>()
                     };
@@ -508,17 +502,8 @@ mod texture {
     }
 
     impl Texture {
-        pub fn from_bytes(
-            device: &wgpu::Device,
-            queue: &wgpu::Queue,
-            bytes: Option<&[u8]>,
-            label: &str,
-        ) -> Result<Self> {
-            let img = if let Some(bytes) = bytes {
-                image::load_from_memory(bytes)?
-            } else {
-                image::DynamicImage::new_rgba8(16, 16)
-            };
+        pub fn dummy(device: &wgpu::Device, queue: &wgpu::Queue, label: &str) -> Result<Self> {
+            let img = image::DynamicImage::new_rgba8(16, 16);
             Self::from_image(device, queue, &img, Some(label))
         }
 
