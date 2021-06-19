@@ -12,6 +12,6 @@ See `bin` sections in `Cargo.toml`.
 cargo run --bin sammple_02_01
 ``` 
 
-# Refference
+# Reference
 
 - https://github.com/shoeisha-books/hlsl-grimoire-sample
