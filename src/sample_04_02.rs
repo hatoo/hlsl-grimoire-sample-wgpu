@@ -14,6 +14,14 @@ struct Matrix {
     _matrix: [[f32; 4]; 4],
 }
 
+#[repr(C)]
+#[derive(Debug, Copy, Clone, Pod, Zeroable)]
+struct DirectionLight {
+    _direction: [f32; 3],
+    _pad: f32,
+    _color: [f32; 3],
+}
+
 async fn run(event_loop: EventLoop<()>, window: Window) {
     let size = window.inner_size();
     let instance = wgpu::Instance::new(wgpu::BackendBit::all());
@@ -159,28 +167,16 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
 
     let directional_light_bind_group_layout =
         device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            entries: &[
-                wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStage::FRAGMENT,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
-                    },
-                    count: None,
+            entries: &[wgpu::BindGroupLayoutEntry {
+                binding: 0,
+                visibility: wgpu::ShaderStage::FRAGMENT,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Uniform,
+                    has_dynamic_offset: false,
+                    min_binding_size: None,
                 },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 1,
-                    visibility: wgpu::ShaderStage::FRAGMENT,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
-                    },
-                    count: None,
-                },
-            ],
+                count: None,
+            }],
             label: None,
         });
 
@@ -206,40 +202,26 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
         label: None,
     });
 
-    let light_direction_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("light direction"),
-        contents: bytemuck::cast_slice(&Into::<[f32; 3]>::into(cgmath::InnerSpace::normalize(
-            cgmath::vec3(1.0f32, -1.0, 1.0),
-        ))),
-        usage: wgpu::BufferUsage::UNIFORM,
-    });
-
-    let light_color_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("light direction"),
-        contents: bytemuck::cast_slice(&[0.5f32, 0.5, 0.5]),
+    let directional_light_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("light"),
+        contents: bytemuck::cast_slice(&[DirectionLight {
+            _direction: cgmath::InnerSpace::normalize(cgmath::vec3(1.0f32, -1.0, 1.0)).into(),
+            _pad: 0.0,
+            _color: [0.5, 0.5, 0.5],
+        }]),
         usage: wgpu::BufferUsage::UNIFORM,
     });
 
     let directional_light_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
         layout: &directional_light_bind_group_layout,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
-                    buffer: &light_direction_buffer,
-                    offset: 0,
-                    size: wgpu::BufferSize::new(size_of::<[f32; 3]>() as wgpu::BufferAddress),
-                }),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
-                    buffer: &light_color_buffer,
-                    offset: 0,
-                    size: wgpu::BufferSize::new(size_of::<[f32; 3]>() as wgpu::BufferAddress),
-                }),
-            },
-        ],
+        entries: &[wgpu::BindGroupEntry {
+            binding: 0,
+            resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+                buffer: &directional_light_buffer,
+                offset: 0,
+                size: wgpu::BufferSize::new(size_of::<DirectionLight>() as wgpu::BufferAddress),
+            }),
+        }],
         label: None,
     });
 

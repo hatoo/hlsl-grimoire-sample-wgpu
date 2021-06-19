@@ -21,14 +21,13 @@ var t_diffuse: texture_2d<f32>;
 var s_diffuse: sampler;
 
 [[block]]
-struct V3 {
-    v: vec3<f32>;
+struct DirectionLight {
+    direction: vec3<f32>;
+    color: vec3<f32>;
 };
 
 [[group(3), binding(0)]]
-var<uniform> directional_light_direction: V3;
-[[group(3), binding(1)]]
-var<uniform> directional_light_color: V3;
+var<uniform> directional_light: DirectionLight;
 
 [[stage(vertex)]]
 fn vs_main([[location(0)]] position: vec4<f32>, [[location(1)]] normal: vec3<f32>, [[location(2)]] color: vec4<f32>, [[location(3)]] tex_coords: vec2<f32>) -> VertexOutput {
@@ -42,6 +41,6 @@ fn vs_main([[location(0)]] position: vec4<f32>, [[location(1)]] normal: vec3<f32
 
 [[stage(fragment)]]
 fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
-    let t: f32 = max(0.0, -1.0 * dot(in.normal, directional_light_direction.v));
-    return vec4<f32>(t * directional_light_color.v, 1.0);
+    let t: f32 = max(0.0, -1.0 * dot(in.normal, directional_light.direction));
+    return vec4<f32>(t * directional_light.color, 1.0);
 }
