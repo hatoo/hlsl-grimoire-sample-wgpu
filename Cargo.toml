@@ -26,6 +26,10 @@ path = "src/sample_03_02.rs"
 name = "sample_04_01"
 path = "src/sample_04_01.rs"
 
+[[bin]]
+name = "sample_04_02"
+path = "src/sample_04_02.rs"
+
 [dependencies]
 wgpu = "0.8.1"
 bytemuck = { version = "1.4", features = ["derive"] }
