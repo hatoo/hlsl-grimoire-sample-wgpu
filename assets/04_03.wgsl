@@ -1,8 +1,9 @@
 struct VertexOutput {
     [[builtin(position)]] position: vec4<f32>;
-    [[location(0)]] normal: vec3<f32>;
-    [[location(1)]] color: vec4<f32>;
-    [[location(2)]] tex_coords: vec2<f32>;
+    [[location(0)]] world_position: vec4<f32>;
+    [[location(1)]] normal: vec3<f32>;
+    [[location(2)]] color: vec4<f32>;
+    [[location(3)]] tex_coords: vec2<f32>;
 };
 
 [[block]]
@@ -33,6 +34,7 @@ var<uniform> directional_light: DirectionLight;
 fn vs_main([[location(0)]] position: vec4<f32>, [[location(1)]] normal: vec3<f32>, [[location(2)]] color: vec4<f32>, [[location(3)]] tex_coords: vec2<f32>) -> VertexOutput {
     var out: VertexOutput;
     out.position = global.mat * local.mat * position;
+    out.world_position = global.mat * local.mat * position;
     out.normal = normalize((global.mat * local.mat * vec4<f32>(normal, 0.0)).xyz);
     out.color = color;
     out.tex_coords = tex_coords;
@@ -44,7 +46,7 @@ fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     let eye_pos = vec3<f32>(0.0, 0.0, 0.0);
     
     let ref = reflect(directional_light.direction, in.normal);
-    let to_eye = normalize(eye_pos - in.position.xyz);
+    let to_eye = normalize(eye_pos - in.world_position.xyz);
     let specular = max(0.0, dot(ref, to_eye));
     let specular = pow(specular, 5.0);
 
