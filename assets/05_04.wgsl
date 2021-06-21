@@ -48,7 +48,7 @@ fn vs_main([[location(0)]] position: vec4<f32>, [[location(1)]] normal: vec3<f32
 fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     let t = dot(in.normal, light.ground_normal);
     let t = (t + 1.0) / 2.0;
-    let hemi = light.sky_color * t + light.ground_color * (1.0 - t);
+    let hemi = mix(light.ground_color, light.sky_color, vec3<f32>(t, t, t));
 
     return vec4<f32>(hemi, 1.0);
 }
