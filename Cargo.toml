@@ -66,6 +66,11 @@ path = "src/sample_05_03.rs"
 name = "sample_05_04"
 path = "src/sample_05_04.rs"
 
+# Normal mapping
+[[bin]]
+name = "sample_06_01"
+path = "src/sample_06_01.rs"
+
 [dependencies]
 wgpu = "0.8.1"
 bytemuck = { version = "1.4", features = ["derive"] }
