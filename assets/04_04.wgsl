@@ -22,13 +22,17 @@ var t_diffuse: texture_2d<f32>;
 var s_diffuse: sampler;
 
 [[block]]
-struct DirectionLight {
+struct Light {
+    eye_position: vec3<f32>;
+    // Directional light
     direction: vec3<f32>;
     color: vec3<f32>;
+    // Ambient light
+    ambient: vec3<f32>;
 };
 
 [[group(3), binding(0)]]
-var<uniform> directional_light: DirectionLight;
+var<uniform> light: Light;
 
 [[stage(vertex)]]
 fn vs_main([[location(0)]] position: vec4<f32>, [[location(1)]] normal: vec3<f32>, [[location(2)]] color: vec4<f32>, [[location(3)]] tex_coords: vec2<f32>) -> VertexOutput {
@@ -43,16 +47,12 @@ fn vs_main([[location(0)]] position: vec4<f32>, [[location(1)]] normal: vec3<f32
 
 [[stage(fragment)]]
 fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
-    let eye_pos = vec3<f32>(0.0, 0.0, 0.0);
-    
-    let ref = reflect(directional_light.direction, in.normal);
-    let to_eye = normalize(eye_pos - in.world_position.xyz);
+    let ref = reflect(light.direction, in.normal);
+    let to_eye = normalize(light.eye_position - in.world_position.xyz);
     let specular = max(0.0, dot(ref, to_eye));
     let specular = pow(specular, 5.0);
 
-    let diffuse: f32 = max(0.0, -1.0 * dot(in.normal, directional_light.direction));
+    let diffuse: f32 = max(0.0, -1.0 * dot(in.normal, light.direction));
 
-    let ambient = vec3<f32>(0.3, 0.3, 0.3);
-
-    return vec4<f32>((specular + diffuse) * directional_light.color + ambient, 1.0);
+    return vec4<f32>((specular + diffuse) * light.color + light.ambient, 1.0);
 }

@@ -17,9 +17,13 @@ struct Matrix {
 #[repr(C)]
 #[derive(Debug, Copy, Clone, Pod, Zeroable)]
 struct DirectionLight {
-    _direction: [f32; 3],
-    _pad: f32,
-    _color: [f32; 3],
+    _eye_position: [f32; 3],
+    _pad0: f32,
+    _directional_light_direction: [f32; 3],
+    _pad1: f32,
+    _directianal_light_color: [f32; 3],
+    _pad2: f32,
+    _ambient_color: [f32; 3],
 }
 
 async fn run(event_loop: EventLoop<()>, window: Window) {
@@ -205,9 +209,16 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
     let directional_light_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("light"),
         contents: bytemuck::cast_slice(&[DirectionLight {
-            _direction: cgmath::InnerSpace::normalize(cgmath::vec3(1.0f32, -1.0, 1.0)).into(),
-            _pad: 0.0,
-            _color: [0.5, 0.5, 0.5],
+            _eye_position: [0.0, 0.0, 0.0],
+            _pad0: 0.0,
+            _directional_light_direction: cgmath::InnerSpace::normalize(cgmath::vec3(
+                1.0f32, -1.0, 1.0,
+            ))
+            .into(),
+            _pad1: 0.0,
+            _directianal_light_color: [0.5, 0.5, 0.5],
+            _pad2: 0.0,
+            _ambient_color: [0.3, 0.3, 0.3],
         }]),
         usage: wgpu::BufferUsage::UNIFORM,
     });
