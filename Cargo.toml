@@ -76,6 +76,11 @@ path = "src/sample_06_01.rs"
 name = "sample_06_02"
 path = "src/sample_06_02.rs"
 
+# Ambient occlusion
+[[bin]]
+name = "sample_06_03"
+path = "src/sample_06_03.rs"
+
 [dependencies]
 wgpu = "0.8.1"
 bytemuck = { version = "1.4", features = ["derive"] }
