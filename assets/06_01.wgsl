@@ -36,6 +36,16 @@ struct Light {
 [[group(3), binding(0)]]
 var<uniform> light: Light;
 
+fn lambert_diffuse(light_direction: vec3<f32>, normal: vec3<f32>) -> f32 {
+    return max(0.0, -1.0 * dot(normal, light_direction));
+}
+
+fn phong_speclar(light_direction: vec3<f32>, normal: vec3<f32>, world_position: vec3<f32>, eye_position: vec3<f32>) -> f32 {
+    let ref = reflect(light_direction, normal);
+    let to_eye = normalize(eye_position - world_position);
+    return pow(max(0.0, dot(ref, to_eye)), 5.0);
+}
+
 [[stage(vertex)]]
 fn vs_main([[location(0)]] position: vec4<f32>, [[location(1)]] normal: vec3<f32>, [[location(2)]] tangent: vec3<f32>, [[location(3)]] bitangent: vec3<f32>, [[location(4)]] color: vec4<f32>, [[location(5)]] tex_coords: vec2<f32>) -> VertexOutput {
     var out: VertexOutput;
@@ -55,12 +65,9 @@ fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     let local_normal = normalize(local_normal * 2.0 - 1.0);
     let normal = in.tangent * local_normal.x + in.bitangent * local_normal.y + in.normal * local_normal.z;
 
-    let ref = reflect(light.direction, normal);
-    let to_eye = normalize(light.eye_position - in.world_position.xyz);
-    let specular = max(0.0, dot(ref, to_eye));
-    let specular = pow(specular, 5.0);
+    let specular = phong_speclar(light.direction, normal, in.world_position.xyz, light.eye_position);
 
-    let diffuse: f32 = max(0.0, -1.0 * dot(normal, light.direction));
+    let diffuse: f32 = lambert_diffuse(light.direction, normal);
 
     return vec4<f32>((specular + diffuse) * light.color + light.ambient, 1.0);
 }
