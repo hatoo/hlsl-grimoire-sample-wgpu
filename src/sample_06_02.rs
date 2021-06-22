@@ -78,19 +78,20 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
             label: Some("texture_bind_group_layout"),
         });
 
-    let normal = include_bytes!("../assets/Tileable_stucco_plaster_wall_texture_NORMAL.jpg");
-    let normal_map = texture::Texture::from_bytes(&device, &queue, normal, "Normal Map").unwrap();
+    let specular = include_bytes!("../assets/298186.png");
+    let specular_map =
+        texture::Texture::from_bytes(&device, &queue, specular, "Specular Map").unwrap();
 
-    let normal_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+    let specular_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
         layout: &texture_bind_group_layout,
         entries: &[
             wgpu::BindGroupEntry {
                 binding: 0,
-                resource: wgpu::BindingResource::TextureView(&normal_map.view),
+                resource: wgpu::BindingResource::TextureView(&specular_map.view),
             },
             wgpu::BindGroupEntry {
                 binding: 1,
-                resource: wgpu::BindingResource::Sampler(&normal_map.sampler),
+                resource: wgpu::BindingResource::Sampler(&specular_map.sampler),
             },
         ],
         label: Some("diffuse_bind_group"),
@@ -112,14 +113,14 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
     // Load the shaders from disk
     let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
         label: None,
-        source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("../assets/06_01.wgsl"))),
+        source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("../assets/06_02.wgsl"))),
         flags: wgpu::ShaderFlags::all(),
     });
 
     let global_matrix_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("global matrix"),
         contents: bytemuck::cast_slice(&[Matrix {
-            _matrix: (Matrix4::from_translation(cgmath::vec3(0.0, 0.0, 0.5))
+            _matrix: (Matrix4::from_translation(cgmath::vec3(0.0, -0.25, 0.75))
                 * Matrix4::from_scale(0.01)
                 * Matrix4::from(Quaternion::from(cgmath::Euler {
                     x: cgmath::Rad(0.0),
@@ -213,7 +214,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
             _eye_position: [0.0, 0.0, 0.0],
             _pad0: 0.0,
             _directional_light_direction: cgmath::InnerSpace::normalize(cgmath::vec3(
-                1.0f32, -1.0, 1.0,
+                0.0f32, 0.0, 1.0,
             ))
             .into(),
             _pad1: 0.0,
@@ -394,7 +395,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
                             &[(i as wgpu::BufferAddress * wgpu::BIND_BUFFER_ALIGNMENT)
                                 as wgpu::DynamicOffset],
                         );
-                        rpass.set_bind_group(2, &normal_bind_group, &[]);
+                        rpass.set_bind_group(2, &specular_bind_group, &[]);
                         rpass.set_vertex_buffer(0, primitive.vertex_buffer.slice(..));
                         rpass.set_index_buffer(
                             primitive.index_buffer.slice(..),
