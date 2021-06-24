@@ -91,6 +91,11 @@ path = "src/sample_07_01.rs"
 name = "sample_07_02"
 path = "src/sample_07_02.rs"
 
+# Simple PBR. Lambert diffuse + Disney based Fresnel diffuse + Cook-torrance specular.
+[[bin]]
+name = "sample_07_03"
+path = "src/sample_07_03.rs"
+
 [dependencies]
 wgpu = "0.8.1"
 bytemuck = { version = "1.4", features = ["derive"] }
