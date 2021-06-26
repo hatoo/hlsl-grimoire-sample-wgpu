@@ -111,6 +111,11 @@ path = "src/sample_08_02.rs"
 name = "sample_08_03"
 path = "src/sample_08_03.rs"
 
+# Linear wipe
+[[bin]]
+name = "sample_09_01"
+path = "src/sample_09_01.rs"
+
 [dependencies]
 wgpu = "0.8.1"
 bytemuck = { version = "1.4", features = ["derive"] }
