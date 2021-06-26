@@ -156,7 +156,7 @@ path = "src/sample_09_08.rs"
 name = "sample_09_09"
 path = "src/sample_09_09.rs"
 
-# nega effect
+# noise effect
 [[bin]]
 name = "sample_09_10"
 path = "src/sample_09_10.rs"
