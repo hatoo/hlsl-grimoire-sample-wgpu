@@ -141,6 +141,11 @@ path = "src/sample_09_05.rs"
 name = "sample_09_06"
 path = "src/sample_09_06.rs"
 
+# monochrome effect
+[[bin]]
+name = "sample_09_07"
+path = "src/sample_09_07.rs"
+
 [dependencies]
 wgpu = "0.8.1"
 bytemuck = { version = "1.4", features = ["derive"] }
