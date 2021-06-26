@@ -23,21 +23,7 @@ var t_diffuse: texture_2d<f32>;
 [[group(0), binding(1)]]
 var s_diffuse: sampler;
 
-[[block]]
-struct Effect {
-    rate: f32;
-};
-
-[[group(2), binding(0)]]
-var<uniform> effect: Effect;
-
 [[stage(fragment)]]
 fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
-    let color = textureSample(t_diffuse, s_diffuse, in.tex_coords);
-
-    let y = 0.299 * color.r + 0.587 * color.g * 0.114 * color.b;
-
-    let sepia = vec3<f32>(y * 0.9, y * 0.7, y * 0.4);
-
-    return vec4<f32>(mix(color.xyz, sepia, vec3<f32>(effect.rate)), color.a);
+    return textureSample(t_diffuse, s_diffuse, in.tex_coords);
 }

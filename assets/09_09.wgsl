@@ -35,9 +35,7 @@ var<uniform> effect: Effect;
 fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     let color = textureSample(t_diffuse, s_diffuse, in.tex_coords);
 
-    let y = 0.299 * color.r + 0.587 * color.g * 0.114 * color.b;
+    let nega = 1.0 - color.rgb;
 
-    let sepia = vec3<f32>(y * 0.9, y * 0.7, y * 0.4);
-
-    return vec4<f32>(mix(color.xyz, sepia, vec3<f32>(effect.rate)), color.a);
+    return vec4<f32>(mix(color.xyz, nega, vec3<f32>(effect.rate)), color.a);
 }

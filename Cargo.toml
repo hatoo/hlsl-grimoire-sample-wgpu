@@ -146,10 +146,20 @@ path = "src/sample_09_06.rs"
 name = "sample_09_07"
 path = "src/sample_09_07.rs"
 
-# nega effect
+# sepia effect
 [[bin]]
 name = "sample_09_08"
 path = "src/sample_09_08.rs"
+
+# nega effect
+[[bin]]
+name = "sample_09_09"
+path = "src/sample_09_09.rs"
+
+# nega effect
+[[bin]]
+name = "sample_09_10"
+path = "src/sample_09_10.rs"
 
 [dependencies]
 wgpu = "0.8.1"
