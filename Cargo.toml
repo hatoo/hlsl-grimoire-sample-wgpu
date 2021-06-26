@@ -101,6 +101,11 @@ path = "src/sample_07_03.rs"
 name = "sample_08_01"
 path = "src/sample_08_01.rs"
 
+# Alpha blending 1
+[[bin]]
+name = "sample_08_02"
+path = "src/sample_08_02.rs"
+
 [dependencies]
 wgpu = "0.8.1"
 bytemuck = { version = "1.4", features = ["derive"] }
