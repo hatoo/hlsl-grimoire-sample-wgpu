@@ -1,5 +1,5 @@
 use bytemuck::{Pod, Zeroable};
-use cgmath::{vec3, Matrix4};
+use cgmath::{vec3, InnerSpace, Matrix4};
 use std::{borrow::Cow, mem::size_of};
 use wgpu::util::DeviceExt;
 use winit::{
@@ -18,6 +18,7 @@ struct Vertex {
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]
 struct Wipe {
+    _direction: [f32; 2],
     _size: f32,
 }
 
@@ -66,7 +67,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
     // Load the shaders from disk
     let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
         label: None,
-        source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("../assets/09_01.wgsl"))),
+        source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("../assets/09_02.wgsl"))),
         flags: wgpu::ShaderFlags::all(),
     });
 
@@ -84,9 +85,14 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
         usage: wgpu::BufferUsage::UNIFORM,
     });
 
+    let mut wipe = Wipe {
+        _direction: InnerSpace::normalize(cgmath::vec2(1.0, 1.0)).into(),
+        _size: 0.0,
+    };
+
     let wipe_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("wipe"),
-        contents: bytemuck::cast_slice(&[Wipe { _size: 0.0 }]),
+        contents: bytemuck::cast_slice(&[wipe]),
         usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
     });
 
@@ -331,11 +337,9 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
             }
             Event::RedrawRequested(_) => {
                 let secs = start.elapsed().as_secs_f32();
-                let new_wipe = Wipe {
-                    _size: (secs * 500.0) % sc_desc.width as f32,
-                };
+                wipe._size = (secs * 500.0) % sc_desc.width as f32;
 
-                queue.write_buffer(&wipe_buffer, 0, bytemuck::cast_slice(&[new_wipe]));
+                queue.write_buffer(&wipe_buffer, 0, bytemuck::cast_slice(&[wipe]));
 
                 let frame = swap_chain
                     .get_current_frame()

@@ -25,6 +25,7 @@ var s_diffuse: sampler;
 
 [[block]]
 struct Wipe {
+    direction: vec2<f32>;
     size: f32;
 };
 
@@ -33,5 +34,6 @@ var<uniform> wipe: Wipe;
 
 [[stage(fragment)]]
 fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
-    return clamp(in.position.x - wipe.size, 0.0, 1.0) * textureSample(t_diffuse, s_diffuse, in.tex_coords);
+    let t = dot(wipe.direction, in.position.xy);
+    return clamp(t - wipe.size, 0.0, 1.0) * textureSample(t_diffuse, s_diffuse, in.tex_coords);
 }
