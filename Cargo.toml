@@ -136,6 +136,11 @@ path = "src/sample_09_04.rs"
 name = "sample_09_05"
 path = "src/sample_09_05.rs"
 
+# Stripe linear wipe
+[[bin]]
+name = "sample_09_06"
+path = "src/sample_09_06.rs"
+
 [dependencies]
 wgpu = "0.8.1"
 bytemuck = { version = "1.4", features = ["derive"] }
